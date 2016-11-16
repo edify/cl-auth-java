@@ -1,0 +1,11 @@
+stages:
+  - test
+
+test-debug-java:
+  image: openjdk:8
+  stage: test
+  except:
+    - master
+  script:
+    - ./gradlew build
+

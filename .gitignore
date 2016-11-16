@@ -1,0 +1,22 @@
+#-------------------General config-------------------
+
+.envrc
+
+
+#-------------------For Java-------------------
+
+.DS_Store
+.gradle
+.idea
+out
+build
+logs
+
+
+#-------------------JetBrains IDEs-------------------
+
+.idea/
+*.iml
+*.ipr
+*.iws
+.idea_modules/
