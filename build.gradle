@@ -1,25 +1,100 @@
-
-
-// Apply the java plugin to add support for Java
-apply plugin: 'java'
 apply plugin: 'groovy'
-apply plugin: "idea"
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
-version = '0.0.1'
+buildscript {
+    repositories {
+
+        mavenCentral()
+        maven { url 'http://dl.bintray.com/jfrog/jfrog-jars' }
+        maven {
+            url "https://edify.artifactoryonline.com/edify/libs-snapshot-local"
+            credentials {
+                username = "${artifactory_user}"
+                password = "${artifactory_password}"
+            }
+        }
+
+        dependencies {
+            classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:+'
+        }
+    }
+}
+
+jar {
+    baseName = "cl-auth"
+}
+
+version = new File("version").text
 group = "org.commonlibrary"
 description = "CL Authentication library using sauthc1 algorithm"
-
 
 repositories {
     mavenCentral()
 }
 
+/**
+ * Artifactory configuration
+ */
+artifactory {
+    contextUrl = "${artifactory_contextUrl}"
+    publish {
+        repository {
+            repoKey = 'libs-releases-local'
+            username = "${artifactory_user}"
+            password = "${artifactory_password}"
+            maven = true
+        }
+        defaults {
+            publications ('mavenJava')
+        }
+    }
+    resolve {
+        repository {
+            repoKey = 'libs-releases'
+            username = "${artifactory_user}"
+            password = "${artifactory_password}"
+            maven = true
+        }
+    }
+}
+
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+artifactoryPublish { 
+  dependsOn jar
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
 
 dependencies {
-    compile 'commons-codec:commons-codec:1.10'
+	compile 'commons-codec:commons-codec:1.10'
     compile 'org.codehaus.groovy:groovy-all:2.4.6'
     compile 'org.slf4j:slf4j-api:1.7.13'
     compile 'biz.paluch.redis:lettuce:4.2.2.Final'
 
     testCompile 'junit:junit:4.12'
+}
+
+test {
+    testLogging {
+        events 'started', 'passed'
+    }
 }
