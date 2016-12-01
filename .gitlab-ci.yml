@@ -1,11 +1,18 @@
 stages:
   - test
+  - publish
 
-test-debug-java:
+test-debug:
   image: openjdk:8
   stage: test
-  except:
-    - master
   script:
     - ./gradlew build
+
+release:
+  image: openjdk:8
+  stage: publish
+  only:
+    - master
+  script:
+    - ./gradlew artifactPublish -Partifactory_user=$ARTIFACTORY_USERNAME -Partifactory_password=$ARTIFACTORY_PASSWORD
 
