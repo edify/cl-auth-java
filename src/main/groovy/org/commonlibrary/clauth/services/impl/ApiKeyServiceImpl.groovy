@@ -18,6 +18,7 @@
  package org.commonlibrary.clauth.services.impl
 
 import com.lambdaworks.redis.RedisClient
+import com.lambdaworks.redis.RedisURI
 import org.commonlibrary.clauth.services.ApiKeyService
 import org.commonlibrary.clauth.utils.Utils
 
@@ -34,10 +35,13 @@ class ApiKeyServiceImpl implements ApiKeyService {
     ApiKeyServiceImpl() {
         def env = System.getenv()
 
+        decryptionPassphrase = env['CL_AUTH_PASSPHRASE'] ?: 'passphrase'
+
         def redisHost = env['CL_REDIS_HOST'] ?: 'localhost'
-        def redisPort = env['CL_REDIS_PORT'] ?: 6379
-        this.redisConnection = RedisClient.create("redis://${redisHost}").connect()
-        this.decryptionPassphrase = env['CL_AUTH_PASSPHRASE'] ?: 'passphrase'
+        def redisPort = env['CL_REDIS_PORT'] ? Integer.parseInt(env['CL_REDIS_PORT']) : 6379
+        def redisPw = env['CL_REDIS_PW'] ?: 'root'
+        def redisURI = RedisURI.Builder.redis(redisHost, redisPort).withPassword(redisPw).build()
+        redisConnection = RedisClient.create(redisURI).connect()
     }
 
     ApiKeyServiceImpl(redisConnection, decryptionPassphrase) {
